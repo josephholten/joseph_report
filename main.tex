@@ -1,0 +1,182 @@
+\documentclass[acmsmall,nonacm,screen,review]{acmart}
+\newif\ifEnableExtend
+%\EnableExtendtrue
+\EnableExtendfalse
+
+\usepackage[utf8]{inputenc}
+\usepackage{url}
+\usepackage{color}
+\usepackage{tikz,pgfplots,float}
+
+\newcommand{\set}[1]{\left\{ #1\right\}}
+\newcommand{\sodass}{\,:\,}
+\newcommand{\setGilt}[2]{\left\{ #1\sodass #2\right\}}
+
+\newcommand{\gilt}{\!:\;} % für Sätze, : mit mehr white-space hinter, weniger vor
+\newcommand{\st}{\!:\;} % für Sätze, : mit mehr white-space hinter, weniger vor
+
+\newcommand{\eqIV}{\overset{\text{IV}}{=}} % IV =
+%\newcommand{\twovec}[2]{\begin{pmatrix}#1\\#2\end{pmatrix}} % Für binom coeff
+%\newcommand{\svec}[3]{{\begin{pmatrix}#1\\#2\\#3\end{pmatrix}}} % Für dreidimensionale Spaltenvektoren
+\newcommand{\colvec}[1]{\begin{pmatrix*}#1\end{pmatrix*}}
+% zu zeigen
+\newcommand{\zzsf}{\underline{\textsf{\makebox[-.2mm][l]{z}\raisebox{0.5mm}{z}}}}
+\newcommand{\zzrm}{\underline{\textrm{\makebox[-.2mm][l]{z}\raisebox{0.5mm}{z}}}}
+% arrows
+\newcommand{\ra}{\rightarrow}
+\newcommand{\Ra}{\Rightarrow}
+
+% number sets
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\C}{\mathbb{C}}
+
+\newcommand{\set}[1]{\left\{#1\right\}}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{xspace}
+\usepackage{relsize}
+
+\newtheorem{openproblem}{Open Problem}
+\newcommand{\ie}{i.\,e.,\xspace}
+\newcommand{\eg}{e.\,g.,\xspace}
+\newcommand{\etal}{et~al.\xspace}
+\newcommand{\cov}{\term{cov}\xspace}
+\newcommand{\term}[1]{\textsl{#1}}
+\newcommand{\Comment}[1]{\textsl{#1}}
+
+\newcommand{\wip}{\textcolor{red}{WIP!}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\setcopyright{none}
+\copyrightyear{2021}
+\acmYear{2021}
+\acmDOI{}
+\acmPrice{}
+\acmISBN{}
+
+\title{Machine Learning Search Space Pruning for Maximum Weight Independent Sets}
+\author{Joseph Holten}
+\email{joseph.holten@stud.uni-heidelberg.de}
+\affiliation{%
+  \institution{Heidelberg University}
+  \streetaddress{Im Neuenheimer Feld 205}
+  \city{Heidelberg}
+  \state{Baden-Württemberg}
+  \country{Germany}
+  \postcode{69120}
+}
+
+
+\date{\today}
+
+\begin{document}
+
+\begin{abstract}
+Insert abstract here.
+\end{abstract}
+\maketitle
+
+\section{Introduction}
+The maximum weight independent set problem is a NP-hard \cite{christian-exact-mwis} combinatorial graph problem as follows:
+Given an undirected Graph $G=(V, E)$ with nodes $V$, node weights $\omega : V \rightarrow \R^+$ and edges $E$, 
+the goal is to find a subset of nodes $\mathcal{I} \subset V$ of maximum weight such that every pair of nodes is independent,
+i.e.\ there doesn't exist an edge between them. This problem is in widespread use across many different domains and applications, [domains+citations... \wip].
+
+Since the problem is NP-hard, enumeration of all possible solutions to solve the problem exactly is infeasible except for the smallest of instances.
+Thus for slightly larger instances of hundreds to thousands a more sophisticated approach of branch-and-reduce is needed. 
+Kernalization, discussed more deeply shortly, reduces the size of the instance, while retaining all optimal solutions.
+This was first done for unweighted instances, then also for weighted graphs by Lamm et al.
+
+Through the heuristic approach to excluding nodes, the size of the graph can be reduced even further, thus allowing to solve everlarger instances.
+
+\section{Machine Learning Kernel Framework}
+
+\section{Evaluation}
+In table~\ref{tab:perf} it is clearly seen, that the presented methodology is applicable to the MWIS problem,
+and generally exhibits in most instances equally good performance as for the maximum clique enumeration problem,
+presented in the original paper. 
+The table lists different performance metrics for a suite of test graphs on which the prediciton model was not trained.
+Their number of nodes ($n$) and edges ($m$) vary between \wip 
+
+\begin{table}[ht]
+\caption{Empirical Results}
+\begin{tabular}{||l r r|r r r||}
+  \hline 
+  Graph & $n$ & $m$& Rem. Size & Rem. Kernel size & Quality \\
+
+  \hline\hline
+  Ga3As3H12 & 61349 & 2954799 & 0.106 & 0.000 & 0.959 \\
+  ncvxqp5 & 62500 & 187483 & 0.344 & 0.000 & 0.908 \\
+  bcsstk31 & 35588 & 572914 & 0.240 & 0.009 & 0.667 \\
+  brack2 & 62631 & 366559 & 0.334 & 0.016 & 0.950 \\
+  pdb1HYS & 36417 & 2154174 & 0.070 & 0.151 & 0.966 \\
+  loc-gowalla & 196591 & 950327 & 0.571 & 0.000 & 0.999 \\
+  fe\_tooth & 78136 & 452591 & 0.355 & 0.000 & 0.998 \\
+  \hline
+
+\end{tabular}
+\end{table}\label{tab:perf}
+
+Table~\ref{tab:tuning} shows how the confidence niveau $q$, a meta parameter, was tuned
+to achieve the best possible results.
+From this we can see that, similarly to the original paper,
+$95\%$ reprents the best compromise between reducing the graph size substancially 
+while still retaining a high quality solution.
+
+\begin{table}[ht]
+\begin{tabular}{||c c c||}
+  \hline 
+  Col1&Col2&Col3 \\
+  \hline\hline
+  A&B&C \\
+  A&B&C \\
+  \hline
+\end{tabular}
+\end{table}\label{tab:tuning}
+
+\begin{figure}
+\caption{Metaparameter tuning}
+\begin{center}
+  
+\begin{tikzpicture}
+\begin{axis}[%
+scatter/classes={%
+    a={mark=o,draw=black}}]
+\addplot[scatter,only marks,%
+    scatter src=explicit symbolic]%
+table[meta=label] {
+x y label
+1 4.3 a
+2 5.1 a
+3 5.7 a
+4 6.3 a
+5 6.8 a
+6 7.1 a
+7 7.2 a
+8 7.2 a
+9 7.2 a
+10 7.2 a
+11 7.5 a
+12 7.8 a
+    };
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\end{figure}
+
+% sichere knoten rein tun: problem -> ist kein independent set, wie wählt man einfach ein independent set daraus? nach gewicht sortieren und nachbarschaften rausnehemn, nicht sonderlich effizient
+
+% Fragen:
+% meta parameter tuning -> wie sollen die zahlen dargestellt werden? verbleibender kernel anteil vs qualität?
+
+
+% empirical results: 
+% graph | removed nodes % | remaining kernal size % | quality %
+
+\bibliographystyle{plainnat}
+\bibliography{references.bib}
+
+\end{document}
