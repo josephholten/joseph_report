@@ -7,6 +7,9 @@
 \usepackage{url}
 \usepackage{color}
 \usepackage{tikz,pgfplots,float}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+\usepackage{makecell}
 
 \newcommand{\set}[1]{\left\{ #1\right\}}
 \newcommand{\sodass}{\,:\,}
@@ -33,11 +36,12 @@
 \newcommand{\R}{\mathbb{R}}
 \newcommand{\C}{\mathbb{C}}
 
-\newcommand{\set}[1]{\left\{#1\right\}}
+% \newcommand{\set}[1]{\left\{#1\right\}}
 \usepackage{amsmath}
 \usepackage{amsthm}
 \usepackage{xspace}
 \usepackage{relsize}
+\usepackage{mathtools}
 
 \newtheorem{openproblem}{Open Problem}
 \newcommand{\ie}{i.\,e.,\xspace}
@@ -45,7 +49,7 @@
 \newcommand{\etal}{et~al.\xspace}
 \newcommand{\cov}{\term{cov}\xspace}
 \newcommand{\term}[1]{\textsl{#1}}
-\newcommand{\Comment}[1]{\textsl{#1}}
+%\newcommand{\Comment}[1]{\textsl{#1}}
 
 \newcommand{\wip}{\textcolor{red}{WIP!}}
 
@@ -69,103 +73,174 @@
   \postcode{69120}
 }
 
+%\binoppenalty=9999
+%\relpenalty=9999
+
 
 \date{\today}
 
 \begin{document}
 
 \begin{abstract}
-Insert abstract here.
+    This is my abstract! More abstract!
 \end{abstract}
 \maketitle
 
+%%%%%% Fragen zu Kommentaren: 
+% Zeile 30f. keine Bemerkung, nur Highlight 
+
 \section{Introduction}
-The maximum weight independent set problem is a NP-hard \cite{christian-exact-mwis} combinatorial graph problem as follows:
-Given an undirected Graph $G=(V, E)$ with nodes $V$, node weights $\omega : V \rightarrow \R^+$ and edges $E$, 
-the goal is to find a subset of nodes $\mathcal{I} \subset V$ of maximum weight such that every pair of nodes is independent,
-i.e.\ there doesn't exist an edge between them. This problem is in widespread use across many different domains and applications, [domains+citations... \wip].
+The maximum weight independent set problem, referred to as the MWIS problem in the following, is a NP-hard \cite{christian-exact-mwis} combinatorial graph problem. 
+The problem is, given an undirected Graph $G=(V, E, \omega)$ with nodes $V$, node weights $\omega : V \rightarrow \R^+$ and edges $E$, to find a subset of nodes $\mathcal{I} \subset V$ of maximum weight such that every pair of nodes is independent, i.e.\ there does not exist an edge between them. 
+This problem is in widespread use across many different domains and applications, [domains+citations\ldots \wip].
 
-Since the problem is NP-hard, enumeration of all possible solutions to solve the problem exactly is infeasible except for the smallest of instances.
-Thus for slightly larger instances of hundreds to thousands a more sophisticated approach of branch-and-reduce is needed. 
-Kernalization, discussed more deeply shortly, reduces the size of the instance, while retaining all optimal solutions.
-This was first done for unweighted instances, then also for weighted graphs by Lamm et al.
+Branch and Bound (+ it's neccessity) ...
 
-Through the heuristic approach to excluding nodes, the size of the graph can be reduced even further, thus allowing to solve everlarger instances.
+This framework provides a way to generate inexact reductions of a graph that are very close in quality to a exact kernel, but reduce its size substantially more than any known set of reduction rules.
 
-\section{Machine Learning Kernel Framework}
+\section{Related Work}
+\subsection{Exact Algorithms}
+% -> B&R paradigm by Lamm et al
+\subsection{Machine Learning Approaches}
+% -> machine learning papers quoted by the original papaer
+\subsection{Original Paper}
+
+% -> original paper
+
+
+\section{Preliminaries}
+The instance of the MWIS problem is an undirected graph $G=(V=\set{0, \dots, n-1}, E)$ with a real-valued node weighting function $\omega : V \ra \R^+$. To specify the graph the set of nodes are from we might write $V(G)$, but let the graph be fixed for this section. 
+We can extend the weight function to sets of nodes $S\subset V$, by defining $\omega(S) \coloneqq \sum_{v\in S} \omega(v)$ and $\omega(S)=0$ for $S=\emptyset$.
+Let $\mathcal{I}\subset V$ be a subset of nodes. It is an \emph{independent} set iff all nodes are pairwise non-adjacent; it is of \emph{maximum weight} (amongst all independent sets) iff for all independent sets $\Tilde{\mathcal{I}} \subset V$ it holds that $\omega(\Tilde{\mathcal{I}}) < \omega(\mathcal{I})$.
+Thus $\mathcal{I}$ is a MWIS iff it is both an independent set and of maximum weight.
+Let $\alpha_\omega(G)$ be defined as the weight of a MWIS in the graph $G$.
+
+The \emph{neighborhood} $N(v)$ of a node $v\in V$ is defined as all adjacent nodes, or formally as $N(v) \coloneqq \set{u\in V \, | \, \set{u, v}\in E}$.
+Let $\Tilde{G}=(\Tilde{V}, \Tilde{E})$ be a graph.
+It is a \emph{subgraph} of $G$, iff $\Tilde{V} \subset V$ and $\Tilde{E} \subset E$. It is called a \emph{reduction} of $G$ or  \emph{induced subgraph} (induced by its set of nodes $\Tilde{V}$) of $G$ iff it is a subgraph of $G$ and two vertices in $\Tilde{V}$ are adjacent in $\Tilde{G}$ iff they are so in $G$, or formally iff $\Tilde{E}=\set{\set{u,v}\in E \, | \, u,v \in \Tilde{V}}$.
+
+A \emph{kernel} of $G$ is a graph $\Tilde{G}$, such that there exists an invertible polynomial time transformation $t : G=(V, E) \mapsto \Tilde{G}=(\Tilde{V}, \Tilde{E})$ from the original graph to the kernel, called a kernelization rule, such that the optimal solution is preserved. 
+Formally, requiring that for a MWIS $\Tilde{\mathcal{I}} \subset \Tilde{V}$ of the kernel it can be mapped through an inverse of the transformation $t^{-1}$ to a MWIS of the original graph, or that $\omega(t^{-1}(\Tilde{\mathcal{I}}))=\alpha_\omega(G)$.
+
+We can also look at the effectiveness of a given reduction $\Tilde{G}=(\Tilde{V}, \Tilde{E})$ of $G=(V,E)$.
+There will be three metrics used, the \emph{quality}, the \emph{remainder} and the \emph{reduction ratio}.
+The quality is defined as  $\frac{\alpha_\omega(\Tilde{G})}{\alpha_\omega(G)}$,
+where as the remainder depends on a kernelization method $\kappa$,
+and is defined as the fraction of the size of the kernel in the reduction and the size of the original graph $\frac{|\kappa(\Tilde{V})|}{|V|}$.
+The reduction ratio is defined as the fraction of nodes remaining after the reduction $\frac{|\Tilde{V}|}{|V|}$. In the weighted case, the size of the graph is replaced by its total weight.
+
+The optimal redution would be to reduce the graph to a MWIS.
+This has a quality of $1$, remainder of $0$, since a MWIS has an empty kernel, and a minimal reduction ratio.
+
+\section{Exact Kernalization}
+Given an instance $G=(V,E),\, \omega : V \ra \R^+$ of the MWIS problem, calculating a kernel is done by using a list of reduction rules, applied incrementally to the graph. 
+Starting from the beginning of the list, the graph is checked for application of each technique. If unsuccessful, proceeding to the next technique, if the application was successful though, the graph has changed, and thus one must start at the beginning of the list again, to check whether applicability has changed. Possibly only local areas around the change have to be rechecked, since, depending on the technique, non changed parts of the graph don't change applicability of the technique.
+Following is a short summary of the most important techniques used in [lamm paper, possibly others?]:
+
+\begin{itemize}
+    \item Neighborhood removal
+    \item Weighted Isolated Vertex removal
+    \item Weighted Vertex Folding
+    \item etc...
+\end{itemize}
+
+\section{Machine Learning Kernels}  % --> approach in general
+\subsection{Formal Construct}
+Given an instance $G=(V,E), \, \omega: V \ra \R$, the aims is to calcualte a reduction of $G$, an induced subgraph $\Tilde{G}$, that minimizes $\kappa$, the fraction of remaining nodes, and maximizes $\Hat{\alpha}_\omega$ the fraction of weight of the remaining optimal solution in the reduction.
+
+To do this we train a classifier $C : V(G) \ra \set{0,1}$ that works on any graph $G$, based on training data $T=\bigcup_{G\in \mathcal{G}} \set{(f_G(v), \ell_G(v)) \, | \, v \in V(G)}$ from a set of training graphs $\mathcal{G}$ where \\ $f_{G}: V(G) \ra \R^d$ is a function from the nodes to a $d$-dimensional feature space, dependent on the graph, $\ell_G : V(G) \ra \set{0,1}$ is a labeling of the nodes by whether or not they are in a MWIS of graph $G$.
+
+
+
+
+
+Our classifier $C = Q \circ P$ is internally comprised of a predictor $P : V(G) \ra [0,1]$ and a threshold function $Q : [0,1] \ra \set{0,1}$. 
+The predictor $P$ is what really is trained. It takes a node and returns the probability it assigns to that node being in the MWIS. 
+The threshold function is defined as $Q(x)=1$ iff $x\geq q$, $Q(x)=0$ otherwise for a threshold value $q\in[0, 1)$, \eg $q=0.05$.
+Thus we can write $C_q$ to indicate, the dependance on the chose $q$.
+
+
+\subsection{Methodology}
+
+Now it will be explained, how to use this model of machine learning reductions on a instance $G$.
+The reduction is constructed as the induced subgraph after removal of two subsets of nodes, the nodes with a very low assigned probability of being in the MWIS and the neighborhoods of the nodes with a high assigned probability of being in the MWIS.
+Firstly, we use our predictor $P$ on all nodes in the graph.
+Then the first subset of nodes is defined as 
+$\Tilde{V}_1 \coloneqq \set{v\in V \,|\, C(v) = 0}$ using a threshold value $q=0.05$ in the classifier.
+For the second subset, we find the nodes with high assigned probability of being in the MWIS, by using our classifier with a high threshold of $1-q$. Then we iterate over these nodes in decending order of their assigned probability and add their neighborhoods to the second subset to be removed, $\Tilde{V}_2$. If a node was added to $\Tilde{V}_2$, i.e. removed, in a earlier iteration, its neighborhood is not removed.
+
+To increase the effectiveness even further, we iterate this approach. Thus the reduction itself is reduced using the same procedure and the same classifier. Since the graph has changed through the first reduction, the classification may also have changed, and thus new nodes might be removed, that were not removed before. It was chosen to iterate the method a fixed number of times. Through experiments it was found that $5$ iterations were sufficient in reducing the graph, since after that no, or only a handful of nodes were still being removed.
+
+The machine learning aspects were handled by a library called XGBoost, which was responsible for training the predictor and using it to perform predictions. 
+
+Using the machine learned search space pruning directly on the graph resulted in quite good performance, though there were some exceptions in the test graphs, on which it did not come close to the optimal solution. This was mitigated by first using the kernelization methods of KaMIS, a library for high quality MWIS [ref to kamis paper(s)?], to apply already known redutions, often already reducing the size dramatically, and then applying the machine learning reduction framework. Thus many nodes for which we already know reduction rules are filtered out, which lessens the workload on the machine learning framework and increases it's performance on the remaining nodes.
+
+This framework can be described by the pseudo code in Algorithm 1.
+
+\begin{algorithm}
+\caption{Reduction framework}\label{alg:reduction}
+\begin{algorithmic}[1]
+\Procedure{ml\_reduce}{$G=(V,E), q\in [0,1)$}
+    \For{$5$ iterations}
+        \State $\Tilde{V}_1 \gets \set{v \in V \, | \, C_q(v) = 0}$
+        \Comment{low probability nodes}
+        \State $\Tilde{V}_H \gets \set{v \in V \, | \, C_{1-q}(v) = 1}$
+        \Comment{high probability nodes}
+        \State $\Tilde{V}_2 \gets \emptyset$
+        \Comment{neighborhoods of high probability nodes}
+        \ForAll{$v \in \Tilde{V}_H$ in decreasing order of $P(v)$}
+            \If{$v \not\in \Tilde{V}_2$}
+                $\Tilde{V}_2 \gets \Tilde{V}_2 \cup N(v)$
+            \EndIf
+        \EndFor
+        \State $G \gets$ induced subgraph by $V \setminus ( \Tilde{V}_1 \cup \Tilde{V}_2)$
+    \EndFor
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+To then actually calculate a solution, the current state of the art exact algorithm [name, weighted\_branch\_bound?] by [Lamm...] from the library KaMIS was used.
+Since only nodes which we do not want to be in the MWIS are removed from the graph, we do not need to worry about any offset created by our reductions. Of course, if one applies, as mentioned before, KaMIS kernelization before, then one does need to carry over the weight offset of nodes removed that should be in the MWIS. Also when reconstructing the solution, then our reductions need to be reversed. This can be accomplished by saving an array representing a map of new node ids to old node ids. 
+
+% detail
+Trainingset != Testset
+
+
+Using xgb gradient boosted trees for the machine learning part. 
 
 \section{Evaluation}
+To evaluate the methodology, a set of test graphs of medium size ($n$ in the order of $10^5$ to $10^6$) and different densities was chosen. 
+The three main metrics used to evaluate the methodology, are the quality, the fraction of the optimal solution still attainable,
+ the remainder, the size of the remaining kernel after the redution as a fraction of the total number of nodes, 
+ and the reduction ratio, the fraction of nodes remaining.
+ These will be abbreviated with qual, rem and red in Table~\ref{tab:perf}.
+
 In table~\ref{tab:perf} it is clearly seen, that the presented methodology is applicable to the MWIS problem,
 and generally exhibits in most instances equally good performance as for the maximum clique enumeration problem,
-presented in the original paper. 
+presented in the original paper.
 The table lists different performance metrics for a suite of test graphs on which the prediciton model was not trained.
-Their number of nodes ($n$) and edges ($m$) vary between \wip 
+Their number of nodes ($n$) and edges ($m$) vary between \wip
 
+
+[numbers are still not using kernelization beforehand!! => with kernelization before, bcsstk31 performed much much better (~96\%)]
 \begin{table}[ht]
 \caption{Empirical Results}
 \begin{tabular}{||l r r|r r r||}
-  \hline 
-  Graph & $n$ & $m$& Rem. Size & Rem. Kernel size & Quality \\
-
-  \hline\hline
-  Ga3As3H12 & 61349 & 2954799 & 0.106 & 0.000 & 0.959 \\
-  ncvxqp5 & 62500 & 187483 & 0.344 & 0.000 & 0.908 \\
-  bcsstk31 & 35588 & 572914 & 0.240 & 0.009 & 0.667 \\
-  brack2 & 62631 & 366559 & 0.334 & 0.016 & 0.950 \\
-  pdb1HYS & 36417 & 2154174 & 0.070 & 0.151 & 0.966 \\
-  loc-gowalla & 196591 & 950327 & 0.571 & 0.000 & 0.999 \\
-  fe\_tooth & 78136 & 452591 & 0.355 & 0.000 & 0.998 \\
   \hline
-
+  Graph & $n$ & $m$& Rem. Graph & Rem. ML & Qual \\
+  \hline
+  \input{table}\\
+  \hline
 \end{tabular}
 \end{table}\label{tab:perf}
+
+Unusual result in pdb1HYS... why does it perform worse when first reduced with kamis? need to train the model also on the kernels for better performance??
 
 Table~\ref{tab:tuning} shows how the confidence niveau $q$, a meta parameter, was tuned
 to achieve the best possible results.
 From this we can see that, similarly to the original paper,
-$95\%$ reprents the best compromise between reducing the graph size substancially 
+$95\%$ reprents the best compromise between reducing the graph size substancially
 while still retaining a high quality solution.
-
-\begin{table}[ht]
-\begin{tabular}{||c c c||}
-  \hline 
-  Col1&Col2&Col3 \\
-  \hline\hline
-  A&B&C \\
-  A&B&C \\
-  \hline
-\end{tabular}
-\end{table}\label{tab:tuning}
-
-\begin{figure}
-\caption{Metaparameter tuning}
-\begin{center}
-  
-\begin{tikzpicture}
-\begin{axis}[%
-scatter/classes={%
-    a={mark=o,draw=black}}]
-\addplot[scatter,only marks,%
-    scatter src=explicit symbolic]%
-table[meta=label] {
-x y label
-1 4.3 a
-2 5.1 a
-3 5.7 a
-4 6.3 a
-5 6.8 a
-6 7.1 a
-7 7.2 a
-8 7.2 a
-9 7.2 a
-10 7.2 a
-11 7.5 a
-12 7.8 a
-    };
-\end{axis}
-\end{tikzpicture}
-\end{center}
-\end{figure}
 
 % sichere knoten rein tun: problem -> ist kein independent set, wie wählt man einfach ein independent set daraus? nach gewicht sortieren und nachbarschaften rausnehemn, nicht sonderlich effizient
 
@@ -173,8 +248,8 @@ x y label
 % meta parameter tuning -> wie sollen die zahlen dargestellt werden? verbleibender kernel anteil vs qualität?
 
 
-% empirical results: 
-% graph | removed nodes % | remaining kernal size % | quality %
+% empirical results:
+% graph | removed nodes % | remaining kernel size % | quality %
 
 \bibliographystyle{plainnat}
 \bibliography{references.bib}
